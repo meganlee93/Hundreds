@@ -18,7 +18,8 @@ namespace Hundreds
 
         Random random;
         int numOfBall;
-        Ball[] balls;
+        //Ball[] balls;
+        List<Ball> balls;
         bool gameOver;
         bool win;
         DialogResult playAgain;
@@ -28,8 +29,9 @@ namespace Hundreds
         Point centerPoint;
         int radius;
 
-        Point ballCenter;
-        int ballRadius;
+        int stage = 1;
+        string stageString;
+
 
         public Form1()
         {
@@ -42,18 +44,21 @@ namespace Hundreds
             gfx = Graphics.FromImage(map);
             random = new Random();
             //numOfBall = random.Next(4, 7);
-            balls = new Ball[6];
+            //balls = new Ball[6];
+            numOfBall = 3;
+            balls = new List<Ball>();
             totalScore = 0;
             gameOver = false;
             win = false;
             generateBall();
+            stageString = $"Stage: {stage}";
         }
 
 
         public void generateBall()
         {
             
-            for (int i = 0; i < balls.Length; i++)
+            for (int i = 0; i < numOfBall; i++)
             {
                 int x = random.Next(0, ClientSize.Width - 40);
                 int y = random.Next(0, ClientSize.Height - 40);
@@ -79,7 +84,7 @@ namespace Hundreds
                 {
                     ySpeed = 3;
                 }
-                balls[i] = new Ball(x,y,size, xSpeed, ySpeed);
+                balls.Add(new Ball(x,y,size, xSpeed, ySpeed));
             }
         }
 
@@ -142,9 +147,11 @@ namespace Hundreds
                 playAgain = MessageBox.Show(display, "Play again?", MessageBoxButtons.YesNo);
                 if (playAgain == DialogResult.Yes)
                 {
-                    generateBall();
                     totalScore = 0;
-                    numOfBall = random.Next(4, 11);
+                    numOfBall++;
+                    stage++;
+                    balls = new List<Ball>();
+                    generateBall();
                     timer1.Enabled = true;
                     win = false;
                     gameOver = false;
@@ -157,7 +164,7 @@ namespace Hundreds
             }
 
 
-            for (int i = 0; i < balls.Length; i++)
+            for (int i = 0; i < balls.Count; i++)
             {
                 balls[i].update(ClientSize.Width, ClientSize.Height);
 
@@ -170,14 +177,10 @@ namespace Hundreds
                     {
                         balls[i].size++;
                         balls[i].score++;
-                        for (int j = 0; j < balls.Length; j++)
+                        for (int j = 0; j < balls.Count; j++)
                         {
                             if (i != j)
                             {
-                                //generate position
-                                //check if balls circular ball interset
-                                //ballCenter = new Point(balls[i].x + (balls[i].size / 2), balls[i].y + (balls[i].size / 2));
-                                //ballRadius = ((balls[i].x + balls[i].size) - balls[i].x) / 2;
                                 if (balls[i].HitBox.IntersectsWith(balls[j].HitBox) && checkBallCollision(balls[i], balls[j]))
                                 {
                                     gameOver = true;
@@ -187,7 +190,7 @@ namespace Hundreds
                         }
 
                         totalScore++;
-                        if (totalScore >= 800)
+                        if (totalScore >= 100)
                         {
                             gameOver = true;
                             win = true;
@@ -197,7 +200,7 @@ namespace Hundreds
 
                 else
                 {
-                    for (int j = 0; j < balls.Length; j++)
+                    for (int j = 0; j < balls.Count; j++)
                     {
                         if (i != j)
                         {
@@ -217,7 +220,7 @@ namespace Hundreds
                 }
             }
 
-            for(int i = 0; i < balls.Length; i++)
+            for(int i = 0; i < balls.Count; i++)
             {
                 balls[i].drawBall(Brushes.Black, gfx);
             }
@@ -225,6 +228,12 @@ namespace Hundreds
             //Need to find center of circle
             //Then find edges
             gfx.DrawString($"{totalScore}/100", new Font("Arial", 10), Brushes.Black, new Point(0, 0));
+            string measureString = $"Stage: {stage}";
+            Font stringFont = new Font("Arial", 10);
+            SizeF stringSize = new SizeF();
+
+            stringSize = gfx.MeasureString(measureString, stringFont);
+            gfx.DrawString(measureString, new Font("Arial", 10), Brushes.Black, new PointF(pictureBox1.Width - stringSize.Width, 0));
 
 
             pictureBox1.Image = map;
